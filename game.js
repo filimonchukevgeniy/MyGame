@@ -49,6 +49,16 @@ class Main extends Phaser.Scene {
         
 
     }
+
+    jump() {
+        this.tweens.add({
+            targets: this.plane,
+            angle: -20,
+            duration: 100,
+            repeat: 1
+        });
+        this.plane.body.velocity.y = -350;
+    }
 }
 
 const config = {
