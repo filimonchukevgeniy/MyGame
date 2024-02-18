@@ -19,6 +19,18 @@ class Main extends Phaser.Scene {
         //Встановлюємо опорну точку літака
         this.plane.setOrigin(0, 0.5);
 
+        this.score = 0;
+        this.labelScore = this.add.text(20, 20, "0", {fontSize: 24, color: "black"});
+        
+        this.pipes = this.physics.add.group();
+
+        this.timedEvent = this.time.addEvent({
+            delay: 1500,
+            callback: this.addRowOfPipes, //Цю функцію реалізуємо на наступному кроці
+            callbackScope: this,
+            loop: true
+        });
+
         this.anims.create({
             key: "planeAnimation",
             frames: this.anims.generateFrameNumbers('plane', {frames: [0, 1, 3, 2]}),
@@ -28,6 +40,8 @@ class Main extends Phaser.Scene {
         this.plane.play("planeAnimation");
         
         this.plane.body.gravity.y = 1000;
+
+        this.physics.add.overlap(this.plane, this.pipes, this.hitPipe, null, this);
     }
 
     // While preload() and create() run only once at the start of the game, update() runs constantly.
@@ -58,6 +72,36 @@ class Main extends Phaser.Scene {
             repeat: 1
         });
         this.plane.body.velocity.y = -350;
+    }
+
+    addOnePipe(x, y) {
+        var pipe = this.physics.add.sprite(x, y, 'pipe');
+        pipe.setOrigin(0, 0);
+        this.pipes.add(pipe);
+        pipe.body.velocity.x = -300;
+    
+        pipe.collideWorldBounds = true;
+        pipe.outOfBoundsKill = true;
+    }
+    //Функція створення труби (стовпчик блоків)
+    addRowOfPipes() {
+        var hole = Math.floor(Math.random() * 5) + 1;
+        this.score += 1;
+        this.labelScore.text = this.score;
+        for (var i = 0; i < 8; i++) {
+            if (!(i >= hole && i <= hole + 2))
+                this.addOnePipe(400, i * 60 + 10);
+        }
+    }
+    hitPipe () {
+        if (this.plane.alive == false) return;
+    
+        this.timedEvent.remove(false);
+        this.plane.alive = false;
+    
+        this.pipes.children.each(function(pipe) {
+            pipe.body.velocity.x = 0;
+        });
     }
 }
 
